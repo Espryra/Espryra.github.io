@@ -399,7 +399,7 @@ const CONFIG = {
   // Theme
   accentColor: "#ff2020",
 
-  // Background music. Browsers may block audible autoplay until interaction.
+  // Background music. Audible autoplay is attempted immediately; browser policy may still block it.
   song: {
     url:      "./assets/background-music.mp3",
     title:    "Epiphany",
@@ -502,28 +502,21 @@ playBtn.addEventListener('click', () => {
 
 unmuteHint.addEventListener('click', unmuteAndShowPlaying);
 
-// Try autoplay muted (browsers generally allow muted autoplay).
-// If it succeeds, prompt a one-tap unmute. If it's blocked entirely,
-// fall back to waiting for the visitor to press play.
+// Attempt audible autoplay immediately. Some browsers block audible autoplay
+// by policy; if they do, the player stays ready for the visitor to press play.
 window.addEventListener('load', () => {
   if (!CONFIG.song.autoplay) return;
-  audio.muted = true;
+
+  audio.muted = false;
   audio.play().then(() => {
     setPlayingUI(true);
-    status.textContent = "Playing muted";
-    unmuteHint.style.display = 'inline';
+    status.textContent = "Now playing";
+    unmuteHint.style.display = 'none';
   }).catch(() => {
-    status.textContent = "Tap play to start";
+    setPlayingUI(false);
+    status.textContent = "Autoplay blocked — tap play";
+    unmuteHint.style.display = 'none';
   });
-
-  // As a courtesy, unmute on the very first click/tap anywhere on the page.
-  const unmuteOnFirstInteraction = () => {
-    if (audio.muted && !audio.paused){
-      unmuteAndShowPlaying();
-    }
-    document.removeEventListener('click', unmuteOnFirstInteraction);
-  };
-  document.addEventListener('click', unmuteOnFirstInteraction);
 });
 </script>
 
